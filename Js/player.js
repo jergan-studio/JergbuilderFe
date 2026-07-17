@@ -1,216 +1,175 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export class Player {
     constructor(scene, camera) {
         this.scene = scene;
         this.camera = camera;
-        this.model = null;
-        this.speed = 0.12;
-        this.keys = { w: false, a: false, s: false, d: false, ' ': false }; 
         
-        this.cameraMode = 'third'; 
-        this.rotation = new THREE.Euler(0, 0, 0, 'YXZ'); 
-        this.mouseSensitivity = 0.002;
-
-        // Physics variables
+        // Movement properties
         this.velocity = new THREE.Vector3();
-        this.gravity = -0.015;
-        this.jumpForce = 0.35;
-        this.isGrounded = false;
-        this.playerHeight = 1.2;
+        this.direction = new THREE.Vector3();
+        this.speed = 5.0;
+        this.jumpForce = 7.0;
+        this.gravity = 22.0;
+        this.isGrounded = true;
 
-        // Build localized proxy fallback geometry immediately to ensure the engine doesn't softlock
-        this.createFallbackMesh();
+        // Visual player mesh structure (for skins)
+        this.playerGroup = new THREE.Group();
+        this.createPlayerMesh();
+        this.scene.add(this.playerGroup);
+
+        // Position camera inside player boundary coordinates
+        this.camera.position.set(0, 2, 0);
+        this.playerGroup.position.copy(this.camera.position);
+
+        // Keyboard tracking states (for Desktop fallback)
+        this.keys = { w: false, a: false, s: false, d: false };
+        this.setupKeyboardListeners();
+    }
+
+    createPlayerMesh() {
+        // Simple human-shaped box model representation for reflection visibility
+        const bodyGeo = new THREE.BoxGeometry(0.6, 1.8, 0.6);
+        this.bodyMat = new THREE.MeshLambertMaterial({ color: 0x4f5b93 }); // Match friendly UI primary blue
+        this.mesh = new THREE.Mesh(bodyGeo, this.bodyMat);
         
-        this.initInput();
-        this.loadModel();
+        // Offset mesh origin so it rests perfectly on ground
+        this.mesh.position.y = 0.9;
+        this.playerGroup.add(this.mesh);
     }
 
-    loadModel() {
-        const loader = new GLTFLoader();
-        loader.load('../jergplr.glb', (gltf) => {
-            if (this.model) this.scene.remove(this.model);
-            
-            this.model = gltf.scene;
-            
-            // Scaled down by half to fit 1x1x1 map block proportions beautifully
-            this.model.scale.set(0.5, 0.5, 0.5); 
-            this.model.position.set(5, 5, 5);
-            
-            this.scene.add(this.model);
-            console.log("Player model jergplr.glb loaded and downscaled successfully!");
-        }, undefined, (error) => {
-            console.warn("Could not find jergplr.glb in root directory. Maintaining fallback box configuration.", error);
-        });
-    }
-
-    createFallbackMesh() {
-        const geo = new THREE.BoxGeometry(0.5, this.playerHeight, 0.5);
-        const mat = new THREE.MeshLambertMaterial({ color: 0x00a8ff });
-        this.model = new THREE.Mesh(geo, mat);
-        this.model.position.set(5, 5, 5);
-        this.scene.add(this.model);
-    }
-
-    // Custom multi-mode skin setter accepts both folder keys or raw web URLs
-    setSkin(skinName, customUrl = null) {
-        if (!this.model) return;
-        let targetColor = 0xffffff;
-        let texturePath = null;
-
-        if (skinName === 'red') targetColor = 0xff3333;
-        if (skinName === 'blue') targetColor = 0x3333ff;
-
-        // Check text signature parameters to determine asset address location route
-        if (skinName !== 'default' && skinName !== 'custom') {
-            texturePath = `../assets/PreSkins/${skinName}.png`;
-        } else if (skinName === 'custom' && customUrl) {
-            texturePath = customUrl;
-        }
-
-        this.model.traverse((child) => {
-            if (child.isMesh) {
-                if (texturePath) {
-                    const loader = new THREE.TextureLoader();
-                    // CrossOrigin declaration keeps web image loads running cleanly without security warnings
-                    loader.setCrossOrigin('anonymous');
-                    child.material.map = loader.load(texturePath);
-                } else {
-                    child.material.map = null;
-                }
-                child.material.color.setHex(targetColor);
-                child.material.needsUpdate = true;
-            }
-        });
-    }
-
-    initInput() {
+    setupKeyboardListeners() {
         window.addEventListener('keydown', (e) => {
-            const key = e.key.toLowerCase();
-            if (key in this.keys) this.keys[key] = true;
-            if (e.key === ' ') this.keys[' '] = true;
-            if (e.key === ']') {
-                this.cameraMode = this.cameraMode === 'third' ? 'first' : 'third';
-            }
+            if (e.key.toLowerCase() === 'w') this.keys.w = true;
+            if (e.key.toLowerCase() === 'a') this.keys.a = true;
+            if (e.key.toLowerCase() === 's') this.keys.s = true;
+            if (e.key.toLowerCase() === 'd') this.keys.d = true;
+            if (e.key === ' ') this.jump();
         });
 
         window.addEventListener('keyup', (e) => {
-            const key = e.key.toLowerCase();
-            if (key in this.keys) this.keys[key] = false;
-            if (e.key === ' ') this.keys[' '] = false;
+            if (e.key.toLowerCase() === 'w') this.keys.w = false;
+            if (e.key.toLowerCase() === 'a') this.keys.a = false;
+            if (e.key.toLowerCase() === 's') this.keys.s = false;
+            if (e.key.toLowerCase() === 'd') this.keys.d = false;
         });
 
-        window.addEventListener('mousemove', (e) => {
-            if (document.pointerLockElement !== document.getElementById('gameCanvas')) return;
-            this.rotation.y -= e.movementX * this.mouseSensitivity;
-            this.rotation.x -= e.movementY * this.mouseSensitivity;
-            this.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, this.rotation.x));
-        });
-
+        // Block placing trigger loop listener
         window.addEventListener('mousedown', (e) => {
-            if (document.pointerLockElement !== document.getElementById('gameCanvas')) return;
-            if (e.button === 0) { // Left-click handles block creation logic
-                this.placeBlock();
+            // Right-click or left-click with pointer-lock active can place blocks
+            if (document.pointerLockElement === document.getElementById('gameCanvas')) {
+                if (e.button === 0 || e.button === 2) {
+                    this.placeBlock();
+                }
             }
         });
     }
 
-    placeBlock() {
-        const raycaster = new THREE.Raycaster();
-        const centerScreen = new THREE.Vector2(0, 0); 
-        raycaster.setFromCamera(centerScreen, this.camera);
-
-        const intersects = raycaster.intersectObjects(this.scene.children);
-        // Clean out checks hitting the player's own mesh elements
-        const targets = intersects.filter(intersect => intersect.object !== this.model && intersect.object.type === "Mesh");
-
-        if (targets.length > 0) {
-            const hit = targets[0];
-            if (hit.distance > 8) return; // Build reach limit check
-
-            const targetBlock = hit.object;
-            const normal = hit.face.normal; 
-
-            // Offset the target coordinate values by exactly 1 grid index out from the impacted face normal vector
-            const newPos = new THREE.Vector3()
-                .copy(targetBlock.position)
-                .add(normal);
-
-            const chosenHexColor = document.getElementById('blockColor').value;
-
-            const blockGeo = new THREE.BoxGeometry(1, 1, 1);
-            const blockMat = new THREE.MeshLambertMaterial({ color: chosenHexColor });
-            const newBlock = new THREE.Mesh(blockGeo, blockMat);
-            
-            newBlock.position.copy(newPos);
-            this.scene.add(newBlock);
-        }
-    }
-
-    checkGroundCollision() {
-        const raycaster = new THREE.Raycaster(
-            new THREE.Vector3(this.model.position.x, this.model.position.y, this.model.position.z),
-            new THREE.Vector3(0, -1, 0)
-        );
-        const intersects = raycaster.intersectObjects(this.scene.children);
-        const targets = intersects.filter(intersect => intersect.object !== this.model);
-
-        if (targets.length > 0) {
-            const closestObject = targets[0];
-            const groundDistance = closestObject.distance;
-            const separationLimit = this.playerHeight / 2;
-
-            if (groundDistance <= separationLimit) {
-                this.model.position.y += (separationLimit - groundDistance);
-                this.velocity.y = 0;
-                this.isGrounded = true;
-                return;
-            }
-        }
-        this.isGrounded = false;
-    }
-
-    update() {
-        if (!this.model) return;
-
-        this.model.rotation.y = this.rotation.y;
-
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.model.quaternion).normalize();
-        const side = new THREE.Vector3(1, 0, 0).applyQuaternion(this.model.quaternion).normalize();
-
-        if (this.keys.w) this.model.position.addScaledVector(forward, this.speed);
-        if (this.keys.s) this.model.position.addScaledVector(forward, -this.speed);
-        if (this.keys.d) this.model.position.addScaledVector(side, this.speed);
-        if (this.keys.a) this.model.position.addScaledVector(side, -this.speed);
-
-        // Apply gravitational physics forces
-        this.velocity.y += this.gravity;
-        if (this.keys[' '] && this.isGrounded) {
+    jump() {
+        if (this.isGrounded) {
             this.velocity.y = this.jumpForce;
             this.isGrounded = false;
         }
-        this.model.position.y += this.velocity.y;
+    }
 
-        this.checkGroundCollision();
+    placeBlock() {
+        // Calculate raycast forward vector matching camera viewing matrix
+        const raycaster = new THREE.Raycaster();
+        const centerScreen = new THREE.Vector2(0, 0); // Raycast dead center forward
+        raycaster.setFromCamera(centerScreen, this.camera);
 
-        // Void reset boundary wrap point
-        if (this.model.position.y < -20) {
-            this.model.position.set(5, 10, 5);
+        const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+        if (intersects.length > 0) {
+            const hit = intersects[0];
+            // Only act if target hit distance is within building reach (e.g. 6 blocks)
+            if (hit.distance < 6) {
+                // Read chosen hex value dynamically from HUD palette input picker elements
+                const colorPicker = document.getElementById('blockColor');
+                const selectedHex = colorPicker ? colorPicker.value : '#557a2b';
+
+                // Determine precise block placement alignment position by reading surface normal face vector
+                const newBlockPos = new THREE.Vector3()
+                    .copy(hit.point)
+                    .add(hit.face.normal.clone().multiplyScalar(0.5))
+                    .floor()
+                    .addScalar(0.5); // Snap perfectly grid center aligned
+
+                const placedGeo = new THREE.BoxGeometry(1, 1, 1);
+                const placedMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(selectedHex) });
+                const newMesh = new THREE.Mesh(placedGeo, placedMat);
+                
+                newMesh.position.copy(newBlockPos);
+                this.scene.add(newMesh);
+                console.log(`Placed creative element block structural node at grid array: X: ${newBlockPos.x}, Y: ${newBlockPos.y}, Z: ${newBlockPos.z}`);
+            }
+        }
+    }
+
+    setSkin(skinType, customUrl = null) {
+        if (!this.bodyMat) return;
+
+        const textureLoader = new THREE.TextureLoader();
+
+        if (skinType === 'default') {
+            this.bodyMat.map = null;
+            this.bodyMat.color.setHex(0x4f5b93); // Soft theme primary color blue
+            this.bodyMat.needsUpdate = true;
+        } else if (skinType === 'red') {
+            this.bodyMat.map = null;
+            this.bodyMat.color.setHex(0xe57373); // Soft pinkish red team skin color
+            this.bodyMat.needsUpdate = true;
+        } else if (skinType === 'blue') {
+            this.bodyMat.map = null;
+            this.bodyMat.color.setHex(0x64b5f6); // Soft bright blue sky team skin color
+            this.bodyMat.needsUpdate = true;
+        } else if (skinType === 'custom' && customUrl) {
+            textureLoader.load(customUrl, 
+                (texture) => {
+                    this.bodyMat.color.setHex(0xffffff); // Clear base filter colors
+                    this.bodyMat.map = texture;
+                    this.bodyMat.needsUpdate = true;
+                }, 
+                undefined, 
+                (err) => { console.error("Could not load external network domain image skin asset:", err); }
+            );
+        }
+    }
+
+    update(delta) {
+        if (!delta) delta = 0.016; // Safety backup interval frames standard speed bounds
+
+        // Apply constant directional gravitational acceleration parameters
+        this.velocity.y -= this.gravity * delta;
+        this.camera.position.y += this.velocity.y * delta;
+
+        // Simulated flat world basic solid floor checks bounds configuration
+        if (this.camera.position.y <= 2.0) {
             this.velocity.y = 0;
+            this.camera.position.y = 2.0;
+            this.isGrounded = true;
         }
 
-        // Perspective camera tracking loops
-        if (this.cameraMode === 'first') {
-            this.camera.position.set(this.model.position.x, this.model.position.y + 0.4, this.model.position.z);
-            const lookTarget = new THREE.Vector3(0, 0, -1).applyEuler(this.rotation).add(this.camera.position);
-            this.camera.lookAt(lookTarget);
-            this.model.visible = false;
-        } else {
-            const offset = new THREE.Vector3(0, 2.5, 4.5).applyEuler(new THREE.Euler(0, this.rotation.y, 0));
-            this.camera.position.copy(this.model.position).add(offset);
-            this.camera.lookAt(this.model.position.x, this.model.position.y + 0.2, this.model.position.z);
-            this.model.visible = true;
+        // Apply keyboard desktop movement tracking variables if active
+        this.direction.z = Number(this.keys.w) - Number(this.keys.s);
+        this.direction.x = Number(this.keys.d) - Number(this.keys.a);
+        this.direction.normalize();
+
+        // Calculate horizontal plane vectors ignoring height profiles pitch indexes
+        const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+        const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
+        camForward.y = 0; camRight.y = 0;
+        camForward.normalize(); camRight.normalize();
+
+        if (this.keys.w || this.keys.s) {
+            this.camera.position.addScaledVector(camForward, this.direction.z * this.speed * delta);
         }
+        if (this.keys.a || this.keys.d) {
+            this.camera.position.addScaledVector(camRight, this.direction.x * this.speed * delta);
+        }
+
+        // Keep player body avatar geometry locked underneath player eye target point tracking locations
+        this.playerGroup.position.copy(this.camera.position);
+        this.playerGroup.position.y -= 1.1; // Offset avatar down below vision line
     }
 }
