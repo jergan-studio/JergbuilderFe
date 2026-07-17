@@ -1,0 +1,118 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    background-color: #0d0d11;
+    font-family: 'Courier New', Courier, monospace;
+    user-select: none;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* Master Overlay for Menu screens */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #141419;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10; /* Keeps menus on top of the 3D world */
+    color: white;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* Ensures menus receive clicks */
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+/* Clear display cutoff when hidden */
+.hidden {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+/* Title Layout */
+h1 {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    text-shadow: 3px 3px #000;
+    color: #4caf50;
+}
+
+h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Menu Layout Container */
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 300px;
+    z-index: 11;
+}
+
+/* Voxel-Style Custom Button UI Elements */
+button {
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    font-family: inherit;
+    background-color: #333;
+    color: white;
+    border: 3px solid #111;
+    cursor: pointer;
+    box-shadow: inset -4px -4px #111, inset 4px 4px #555;
+    pointer-events: auto; /* Explicitly enables mouse clicks */
+}
+
+button:hover:not(:disabled) {
+    background-color: #444;
+}
+
+button:active:not(:disabled) {
+    box-shadow: inset 4px 4px #111, inset -4px -4px #555;
+}
+
+button:disabled {
+    background-color: #222;
+    color: #555;
+    border-color: #111;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* In-Game Heads Up Display Overlay layout */
+#hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    pointer-events: none; /* Let movement clicks pass through the HUD background */
+    z-index: 5;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Re-enables clicking context on inputs inside the HUD window */
+#hud input {
+    pointer-events: auto;
+}
