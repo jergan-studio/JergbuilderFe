@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jergcraft: JavaScript Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jergcraft: Friendlier Edition</title>
     <link rel="stylesheet" href="style.css">
     
     <script type="importmap">
@@ -17,78 +17,106 @@
 </head>
 <body>
 
-    <div id="mainMenu" class="overlay">
-        <h1 style="color: #4caf50; font-size: 3.5rem; margin-bottom: 5px; text-shadow: 3px 3px #1b431c;">Jergcraft</h1>
-        <div style="color: #888; margin-bottom: 30px; font-size: 1.2rem; letter-spacing: 2px;">JAVASCRIPT EDITION</div>
+    <div id="mainMenu" class="overlay animate-fade">
+        <h1 style="color: #81c784; font-size: 3.5rem; margin-bottom: 5px; text-shadow: 2px 2px rgba(0,0,0,0.3);">Jergcraft ✨</h1>
+        <div style="color: #a5d6a7; margin-bottom: 30px; font-size: 1.2rem; letter-spacing: 2px; font-weight: bold;">FRIENDLIER EDITION</div>
         <div class="menu-buttons">
-            <button id="btnWorlds">Worlds</button>
-            <button id="btnSkins">Skins</button>
-            <button id="btnMultiplayer" disabled style="opacity: 0.4; cursor: not-allowed;">Multiplayer (Soon)</button>
+            <button id="btnWorlds">🌸 Explore Worlds</button>
+            <button id="btnSkins">🎨 Dress Up Skin</button>
+            <button id="btnSettingsMenu">⚙️ Settings</button>
+            <button id="btnMultiplayer" disabled style="opacity: 0.4; cursor: not-allowed;">Play with Friends (Soon)</button>
         </div>
     </div>
 
-    <div id="worldsMenu" class="overlay hidden" style="flex-direction: row !important; gap: 60px; padding: 40px;">
-        
-        <div style="display: flex; flex-direction: column; width: 320px;">
-            <h2 style="margin-bottom: 20px; text-align: left; color: #4caf50;">WORLDS</h2>
-            <div class="menu-buttons" style="width: 100%;">
-                <button class="world-select" data-world="world1" style="text-align: left;">📁 World 1</button>
-                <button class="world-select" data-world="world2" style="text-align: left;">📁 World 2</button>
-                <button class="btnBack" style="margin-top: 40px; background-color: #444;">Back to Menu</button>
+    <div id="worldsMenu" class="overlay hidden">
+        <div class="split-container">
+            <div class="menu-column">
+                <h2 style="color: #81c784; margin-bottom: 20px;">WORLDS</h2>
+                <div class="menu-buttons" style="width: 100%;">
+                    <button class="world-select" data-world="world1">📁 World 1</button>
+                    <button class="world-select" data-world="world2">📁 World 2</button>
+                    <button class="btnBack" style="margin-top: 40px; background-color: #5c6bc0;">Back to Menu</button>
+                </div>
             </div>
-        </div>
 
-        <div style="width: 4px; height: 60%; background: #333; align-self: center;"></div>
+            <div class="divider"></div>
 
-        <div style="display: flex; flex-direction: column; width: 350px; text-align: left;">
-            <h2 style="margin-bottom: 25px; color: #4caf50;">New Worlds</h2>
-            
-            <div style="background: rgba(0,0,0,0.4); padding: 20px; border: 3px solid #333; display: flex; flex-direction: column; gap: 20px;">
-                <h3 style="margin: 0; font-size: 1.3rem; text-transform: uppercase; letter-spacing: 1px;">New World</h3>
-                
-                <div style="display: flex; flex-direction: column; gap: 5px;">
-                    <label for="worldSeed" style="font-size: 0.85rem; color: #888;">Seed:</label>
-                    <input type="text" id="worldSeed" placeholder="00000000" style="padding: 12px; background: #111; border: 2px solid #444; color: #4caf50; font-family: inherit; font-size: 1.1rem;">
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <span style="font-size: 0.85rem; color: #888;">Mode:</span>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="modeCreative" type="button" style="flex: 1; padding: 10px; background-color: #4caf50; color: black;">Creative</button>
-                        <button id="modeSurvival" type="button" style="flex: 1; padding: 10px; background-color: #333; color: white; opacity: 0.5;">Survival</button>
+            <div class="menu-column">
+                <h2 style="color: #81c784; margin-bottom: 25px;">New Worlds</h2>
+                <div class="setup-box">
+                    <h3 style="margin: 0; font-size: 1.2rem; text-transform: uppercase;">New World</h3>
+                    
+                    <div class="input-group">
+                        <label for="worldSeed">Seed:</label>
+                        <input type="text" id="worldSeed" placeholder="00000000">
                     </div>
-                </div>
 
-                <button id="btnCreateWorld" style="background-color: #4caf50; color: black; border-color: #2e6930; font-size: 1.3rem; margin-top: 10px; width: 100%;">[create]</button>
+                    <div class="input-group">
+                        <span>Mode:</span>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="modeCreative" type="button" style="flex: 1; padding: 10px; background-color: #81c784; color: #1c1d31;">Creative</button>
+                            <button id="modeSurvival" type="button" style="flex: 1; padding: 10px; background-color: #333; opacity: 0.5;">Survival</button>
+                        </div>
+                    </div>
+
+                    <button id="btnCreateWorld" style="background-color: #81c784; color: #1c1d31; font-size: 1.3rem; margin-top: 10px; width: 100%;">[create]</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="skinsMenu" class="overlay hidden">
-        <h2>Select Skin</h2>
+        <h2 style="color: #81c784;">Select Skin</h2>
         <div class="menu-buttons">
             <button class="skin-select" data-skin="default">Default Model</button>
             <button class="skin-select" data-skin="red">Red Team Skin</button>
             <button class="skin-select" data-skin="blue">Blue Team Skin</button>
-            <button id="btnCustomSkin" style="background-color: #5c3ca6; border-color: #2c1c56;">+ Load Custom URL Skin</button>
-            <button class="btnBack" style="background-color: #444;">Back to Menu</button>
+            <button id="btnCustomSkin" style="background-color: #ab47bc;">+ Load Custom URL Skin</button>
+            <button class="btnBack" style="background-color: #5c6bc0;">Back to Menu</button>
+        </div>
+    </div>
+
+    <div id="settingsMenu" class="overlay hidden">
+        <h2 style="color: #81c784;">Game Settings</h2>
+        <div class="setup-box" style="width: 300px; padding: 25px;">
+            <div class="input-group">
+                <span style="font-weight: bold; margin-bottom: 10px; display: block;">Control Profile:</span>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button id="toggleDesktopProfile" style="background-color: #81c784; color: black;">💻 Computer (Mouse/Key)</button>
+                    <button id="toggleMobileProfile" style="background-color: #333; color: white; opacity: 0.6;">📱 Mobile (Touch HUD)</button>
+                </div>
+            </div>
+            <button class="btnBack" style="margin-top: 20px; width: 100%; background-color: #5c6bc0;">Save & Close</button>
         </div>
     </div>
 
     <div id="escMenu" class="overlay hidden">
-        <h2>Game Paused</h2>
+        <h2 style="color: #e57373;">Game Paused</h2>
         <div class="menu-buttons">
-            <button id="btnResume">Resume Game</button>
-            <button id="btnQuit">Quit to Main Menu</button>
+            <button id="btnResume" style="background-color: #81c784; color: black;">Resume Game</button>
+            <button id="btnQuit" style="background-color: #e57373;">Quit to Main Menu</button>
+        </div>
+    </div>
+
+    <div id="mobileTouchControls" class="hidden">
+        <div id="joystickContainer">
+            <div id="joystickKnob"></div>
+        </div>
+        
+        <div id="mobileActionTray">
+            <button id="btnMobileJump" type="button">🚀 JUMP</button>
+            <button id="btnMobilePlace" type="button">➕ PLACE</button>
+            <button id="btnMobilePause" type="button">⏸️ MENU</button>
         </div>
     </div>
 
     <div id="hud" class="hidden">
         <div id="ui">
-            Click window to look | WASD to Move | Press SPACE to Jump | Press ESC to pause
+            <span id="desktopInstructions">Move: WASD | Look: Mouse Click | Pause: ESC</span>
+            <span id="mobileInstructions" class="hidden">Use left stick to move, drag screen to look around!</span>
             <br><br>
-            <span id="hudGamemodeDisplay" style="background: #4caf50; color: black; padding: 2px 6px; font-weight: bold; margin-right: 10px;">CREATIVE MODE</span>
-            <label for="blockColor">Block Color: </label>
+            <span id="hudGamemodeDisplay" style="background: #81c784; color: black; padding: 4px 8px; font-weight: bold; border-radius: 6px; margin-right: 10px;">CREATIVE MODE</span>
+            <label for="blockColor">Block: </label>
             <input type="color" id="blockColor" value="#557a2b">
         </div>
     </div>
