@@ -1,118 +1,203 @@
-html, body {
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body, html {
     margin: 0;
     padding: 0;
-    overflow: hidden;
     width: 100%;
     height: 100%;
-    background-color: #0d0d11;
-    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+    background-color: #12131c;
+    font-family: 'Comfortaa', 'Trebuchet MS', sans-serif;
     user-select: none;
+    touch-action: none;
 }
 
 #gameCanvas {
-    display: block;
-    width: 100vw;
-    height: 100vh;
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1;
 }
 
-/* Master Overlay for Menu screens */
 .overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: #141419;
+    background: radial-gradient(circle, #25283d 0%, #12131c 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 10; /* Keeps menus on top of the 3D world */
-    color: white;
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto; /* Ensures menus receive clicks */
-    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    z-index: 10;
 }
 
-/* Clear display cutoff when hidden */
 .hidden {
     display: none !important;
-    pointer-events: none !important;
 }
 
-/* Title Layout */
-h1 {
-    font-size: 4rem;
-    margin-bottom: 2rem;
-    text-shadow: 3px 3px #000;
-    color: #4caf50;
+.split-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+    padding: 20px;
+    max-width: 90%;
 }
 
-h2 {
-    font-size: 2.5rem;
-    margin-bottom: 2rem;
+.menu-column {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
 }
 
-/* Menu Layout Container */
+.divider {
+    width: 3px;
+    height: 300px;
+    background: #393e5e;
+    align-self: center;
+}
+
+.setup-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border: 2px solid #393e5e;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+input[type="text"] {
+    padding: 12px;
+    background: #0b0c12;
+    border: 2px solid #393e5e;
+    border-radius: 8px;
+    color: #81c784;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
 .menu-buttons {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 300px;
-    z-index: 11;
+    width: 280px;
 }
 
-/* Voxel-Style Custom Button UI Elements */
 button {
-    padding: 15px;
-    font-size: 1.2rem;
-    font-weight: bold;
+    padding: 14px;
     font-family: inherit;
-    background-color: #333;
+    font-size: 1.05rem;
+    font-weight: bold;
+    background-color: #4f5b93;
     color: white;
-    border: 3px solid #111;
+    border: none;
+    border-radius: 10px;
     cursor: pointer;
-    box-shadow: inset -4px -4px #111, inset 4px 4px #555;
-    pointer-events: auto; /* Explicitly enables mouse clicks */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-align: center;
 }
 
 button:hover:not(:disabled) {
-    background-color: #444;
+    background-color: #616ea8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.25);
 }
 
 button:active:not(:disabled) {
-    box-shadow: inset 4px 4px #111, inset -4px -4px #555;
+    transform: translateY(1px);
 }
 
-button:disabled {
-    background-color: #222;
-    color: #555;
-    border-color: #111;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* In-Game Heads Up Display Overlay layout */
+/* HUD System Styles */
 #hud {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    color: white;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 10px;
-    border-radius: 5px;
-    pointer-events: none; /* Let movement clicks pass through the HUD background */
+    top: 20px;
+    left: 20px;
     z-index: 5;
-    font-size: 1rem;
-    line-height: 1.5;
 }
 
-/* Re-enables clicking context on inputs inside the HUD window */
-#hud input {
-    pointer-events: auto;
+#ui {
+    background: rgba(18, 19, 28, 0.85);
+    border: 2px solid #393e5e;
+    border-radius: 12px;
+    color: white;
+    padding: 15px;
+}
+
+input[type="color"] {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+/* Mobile Virtual Joystick D-Pad Layout */
+#joystickContainer {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    z-index: 8;
+    touch-action: none;
+}
+
+#joystickKnob {
+    position: absolute;
+    top: 35px;
+    left: 35px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+#mobileActionTray {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 8;
+}
+
+#mobileActionTray button {
+    width: 90px;
+    height: 60px;
+    border-radius: 14px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+/* Responsive adjustments for phones */
+@media(max-width: 768px) {
+    .split-container {
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+        height: 85vh;
+    }
+    .divider {
+        width: 80%;
+        height: 2px;
+    }
 }
